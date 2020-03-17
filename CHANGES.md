@@ -1,3 +1,63 @@
+Release version 0.12.1
+----------------------
+
+* Library
+  - [base] Fixes memory overwrite when reallocating a buffer of smaller size using ozz default memory allocator.
+
+Release version 0.12.0
+----------------------
+
+* Library
+  - [offline] Simplified AnimationOptimizer settings to a single tolerance and distance. Tolerance is the maximum error that an optimization is allowed to generate on a whole joint hierarchy, while the other parameter is the distance (from the joint) at which error is measured. This second parameter allows to emulate effect on skinning or a long object (sword) attached to a joint (hand).
+  - [offline] Adds options to AnimationOptimizer to override optimization settings for a joint. This implicitly have an effect on the whole chain, up to that joint. This allows for example to have aggressive optimization for a whole skeleton, except for the chain that leads to the hand if user wants it to be precise.
+  - [offline] Switches AnimationOptimizer and TrackOptimizer to Ramer–Douglas–Peucker decimation algorithm which delivers better precision than original one. It also ensures that first and last points are preserved, avoiding visual issues for looping animations.
+  - [offline] Changes order of parameters for IterateJointsDF so it's less error prone.
+  - [memory] Implements ScopedPtr smart pointer. ScopedPtr implementation guarantees the pointed object will be deleted, either on destruction of the ScopedPtr, or via an explicit reset / reassignation.
+  - [math] Quaternion compare function now takes cosine of half angle as argument, to avoid computing arc cosine for every comparison as the tolerance is usually constant.
+  - [base] Replaces ozz::memory::Allocator New and Delete function with OZZ_NEW and OZZ_DELETE macros, in order to provide an interface that supports any type and number of arguments (without requiring c++11).
+  - [base] #83 Allows user code to disable definition of global namespace sse \_m128 +-/* operators, as they might conflict with other sse math libraries.
+
+* Samples
+  - [optimize] Exposes joint setting overriding option (from AnimationOptimizer) to sample gui. Displays median and maximum error values.
+
+* Tools
+  - Moves keyframe reduction stage for additive animations before computing delta with reference pose. This ensures whole skeleton hierarchy is known before decimating keyframes.
+
+Release version 0.11.0
+----------------------
+
+* Library
+  - [animation] Adds two-bone and aim inverse kinematic solvers. They can be used at runtime to procedurally affect joint local-space transforms.
+  - [animation] Allows resizing SamplingCache, meaning the can be allocated without knowing the number of joints the cache needs to support.
+  - [animation] Allow ozz::animation::LocalToModelJob to partially update a hierarchy, aka all children of a joint. This is useful when changes to a local-space pose has been limited to part of the joint hierarchy, like when applying IK or modifying model-space matrices independently from local-space transform.
+  - [animation] Changes ozz::animation::Skeleton joints from breadth-first to depth-first. This change breaks compatibility of previous ozz::animation::offline::RawAnimation, ozz::animation::Animation and ozz::animation::Skeleton archives.
+  - [animation] Renames track_triggering_job_stl.h to track_triggering_job_trait.h.
+  - [offline] #62 Adds an a way to specify additive animation reference pose to ozz::animation::offline::AdditiveAnimationBuilder.
+  - [memory] Removes (too error prone) ozz::memory::Allocator typed allocation functions.
+  - [math] Changes all conversion from AxisAngle to use separate arguments for axis and angle. This is more in line with function use cases.
+  - [math] Adds quaternions initialization from two vectors.
+  - [simd math] Updates simd math functions to prevent unnecessary operations. Some functions now return undefined values for some components, like Dot3 that will return the dot value in x and undefined values for x, y, z. See [simd_math.h](include/ozz/base/maths/simd_math.h) for each function documentation.
+  - [simd math] Implements AVX and FMA optimizations (when enabled at compile time).
+  - [simd math] Implements simd quaternions, making it easier and more efficient to use quaternion with other simd math code.
+  - [simd math] Exposes swizzling operations.
+
+* Samples
+  - [two bone ik] Adds two-bone ik sample, showing how ozz::animation::IKTwoBoneJob can be used on a robot arm.
+  - [look at] Adds a look-at sample, using ozz::animation::IKAimJob on a chain of bones to distribute aiming contribution to more than a single joint.
+  - [foot_ik] Adds foot-ik sample, which corrects character legs and ankles procedurally at runtime, as well as character/pelvis height, so that the feet can touch and adapt to the ground.
+
+* Build pipeline
+  - Adds support for fbx sdk 2019. This version is now mandatory for vs2017 builds.
+  - Adds support to macos 10.14 Mojave and Xcode 10.0.
+
+* Tools
+  - Adds point and vector property types (used to import tracks). These two types are actually float3 types, with scene axis and unit conversion applied.
+  - Adds an option to importer tools to select additive animation reference pose.
+
+* Build pipeline
+  - #40 Adds ozz_build_postfix option.
+  - #41 Adds ozz_build_tools option.
+
 Release version 0.10.0
 ----------------------
 

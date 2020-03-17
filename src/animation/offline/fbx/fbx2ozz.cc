@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -38,19 +38,19 @@ Fbx2OzzImporter::Fbx2OzzImporter()
     : settings_(fbx_manager_), scene_loader_(NULL) {}
 
 Fbx2OzzImporter::~Fbx2OzzImporter() {
-  ozz::memory::default_allocator()->Delete(scene_loader_);
+  OZZ_DELETE(ozz::memory::default_allocator(), scene_loader_);
 }
 
 bool Fbx2OzzImporter::Load(const char* _filename) {
-  ozz::memory::default_allocator()->Delete(scene_loader_);
-  scene_loader_ = ozz::memory::default_allocator()
-                      ->New<ozz::animation::offline::fbx::FbxSceneLoader>(
-                          _filename, "", fbx_manager_, settings_);
+  OZZ_DELETE(ozz::memory::default_allocator(), scene_loader_);
+  scene_loader_ = OZZ_NEW(ozz::memory::default_allocator(),
+                          ozz::animation::offline::fbx::FbxSceneLoader)(
+      _filename, "", fbx_manager_, settings_);
 
   if (!scene_loader_->scene()) {
     ozz::log::Err() << "Failed to import file " << _filename << "."
                     << std::endl;
-    ozz::memory::default_allocator()->Delete(scene_loader_);
+    OZZ_DELETE(ozz::memory::default_allocator(), scene_loader_);
     scene_loader_ = NULL;
     return false;
   }

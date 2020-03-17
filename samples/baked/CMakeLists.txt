@@ -16,6 +16,7 @@ add_custom_command(
 
 add_executable(sample_baked
   sample_baked.cc
+  "${CMAKE_CURRENT_LIST_DIR}/config.json"
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
@@ -34,6 +35,7 @@ if(EMSCRIPTEN)
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_baked.html
     ${CMAKE_CURRENT_BINARY_DIR}/sample_baked.js
+    ${CMAKE_CURRENT_BINARY_DIR}/sample_baked.wasm
     DESTINATION bin/samples/baked)
 else()
   install(TARGETS sample_baked DESTINATION bin/samples/baked)

@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -152,8 +152,9 @@ void FbxSceneLoader::ImportScene(FbxImporter* _importer,
     // Setup axis and system converter.
     if (imported) {
       FbxGlobalSettings& settings = scene_->GetGlobalSettings();
-      converter_ = ozz::memory::default_allocator()->New<FbxSystemConverter>(
-          settings.GetAxisSystem(), settings.GetSystemUnit());
+      converter_ =
+          OZZ_NEW(ozz::memory::default_allocator(), FbxSystemConverter)(
+              settings.GetAxisSystem(), settings.GetSystemUnit());
     }
 
     // Clear the scene if import failed.
@@ -171,7 +172,7 @@ FbxSceneLoader::~FbxSceneLoader() {
   }
 
   if (converter_) {
-    ozz::memory::default_allocator()->Delete(converter_);
+    OZZ_DELETE(ozz::memory::default_allocator(), converter_);
     converter_ = NULL;
   }
 }
@@ -291,7 +292,7 @@ math::Float3 FbxSystemConverter::ConvertPoint(const FbxVector4& _p) const {
   return ret;
 }
 
-math::Float3 FbxSystemConverter::ConvertNormal(const FbxVector4& _p) const {
+math::Float3 FbxSystemConverter::ConvertVector(const FbxVector4& _p) const {
   const math::SimdFloat4 p_in = math::simd_float4::Load(
       static_cast<float>(_p[0]), static_cast<float>(_p[1]),
       static_cast<float>(_p[2]), 0.f);

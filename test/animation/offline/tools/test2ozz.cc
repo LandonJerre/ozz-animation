@@ -3,7 +3,7 @@
 // ozz-animation is hosted at http://github.com/guillaumeblanc/ozz-animation  //
 // and distributed under the MIT License (MIT).                               //
 //                                                                            //
-// Copyright (c) 2017 Guillaume Blanc                                         //
+// Copyright (c) 2019 Guillaume Blanc                                         //
 //                                                                            //
 // Permission is hereby granted, free of charge, to any person obtaining a    //
 // copy of this software and associated documentation files (the "Software"), //
@@ -32,21 +32,19 @@
 #include "ozz/animation/runtime/skeleton.h"
 
 #include "ozz/base/io/stream.h"
-#include "ozz/base/memory/allocator.h"
+#include "ozz/base/memory/scoped_ptr.h"
 
 class TestConverter : public ozz::animation::offline::OzzImporter {
  public:
-  TestConverter() : file_(NULL) {}
-  ~TestConverter() { ozz::memory::default_allocator()->Delete(file_); }
+  TestConverter() {}
+  ~TestConverter() {}
 
  private:
   virtual bool Load(const char* _filename) {
-    ozz::memory::default_allocator()->Delete(file_);
-    file_ =
-        ozz::memory::default_allocator()->New<ozz::io::File>(_filename, "rb");
+    file_.reset(OZZ_NEW(ozz::memory::default_allocator(), ozz::io::File)(
+        _filename, "rb"));
     if (!file_->opened()) {
-      ozz::memory::default_allocator()->Delete(file_);
-      file_ = NULL;
+      file_.reset(NULL);
       return false;
     }
 
@@ -85,9 +83,12 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
       }
 
       file_->Seek(0, ozz::io::File::kSet);
-      const char good_content_not_unique[] = "good content but not unique joint names";
-      if (file_->Read(buffer, sizeof(buffer)) >= sizeof(good_content_not_unique) - 1 &&
-          memcmp(buffer, good_content_not_unique, sizeof(good_content_not_unique) - 1) == 0) {
+      const char good_content_not_unique[] =
+          "good content but not unique joint names";
+      if (file_->Read(buffer, sizeof(buffer)) >=
+              sizeof(good_content_not_unique) - 1 &&
+          memcmp(buffer, good_content_not_unique,
+                 sizeof(good_content_not_unique) - 1) == 0) {
         _skeleton->roots.resize(1);
         ozz::animation::offline::RawSkeleton::Joint& root = _skeleton->roots[0];
         root.name = "jointx";
@@ -196,9 +197,11 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
   }
 
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate,
                       ozz::animation::offline::RawFloatTrack* _track) {
     (void)_animation_name;
+    (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
 
@@ -211,9 +214,11 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
   }
 
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate,
                       ozz::animation::offline::RawFloat2Track* _track) {
     (void)_animation_name;
+    (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
 
@@ -225,9 +230,11 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
   }
 
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate,
                       ozz::animation::offline::RawFloat3Track* _track) {
     (void)_animation_name;
+    (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
 
@@ -237,10 +244,13 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
                  strcmp(_track_name, "property3") == 0;
     return found;
   }
+
   virtual bool Import(const char* _animation_name, const char* _node_name,
-                      const char* _track_name, float _sampling_rate,
+                      const char* _track_name, NodeProperty::Type _track_type,
+                      float _sampling_rate,
                       ozz::animation::offline::RawFloat4Track* _track) {
     (void)_animation_name;
+    (void)_track_type;
     (void)_sampling_rate;
     (void)_track;
 
@@ -251,7 +261,7 @@ class TestConverter : public ozz::animation::offline::OzzImporter {
     return found;
   }
 
-  ozz::io::File* file_;
+  ozz::ScopedPtr<ozz::io::File> file_;
 };
 
 int main(int _argc, const char** _argv) {
